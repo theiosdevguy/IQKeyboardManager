@@ -695,11 +695,21 @@ void _IQShowLog(NSString *logString);
                     //  Converting Rectangle according to window bounds.
                     CGRect currentTextFieldViewRect = [[_textFieldView superview] convertRect:_textFieldView.frame toView:keyWindow];
                     
+                    __block CGFloat headerHeight = 0;
+                    [_textFieldView.viewController.view.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                        if ([obj isKindOfClass:[UITableView class]]) {
+                            UITableView *tableView = obj;
+                            headerHeight = [tableView.delegate tableView:tableView heightForHeaderInSection:0];
+                            
+                            *stop = YES;
+                        }
+                    }];
+                    
                     //Calculating expected fix distance which needs to be managed from navigation bar
                     CGFloat expectedFixDistance = CGRectGetMinY(currentTextFieldViewRect) - maintainTopLayout;
                     
                     //Now if expectedOffsetY (superScrollView.contentOffset.y + expectedFixDistance) is lower than current shouldOffsetY, which means we're in a position where navigationBar up and hide, then reducing shouldOffsetY with expectedOffsetY (superScrollView.contentOffset.y + expectedFixDistance)
-                    shouldOffsetY = MIN(shouldOffsetY, superScrollView.contentOffset.y + expectedFixDistance);
+                    shouldOffsetY = MIN(shouldOffsetY, superScrollView.contentOffset.y + expectedFixDistance) - headerHeight;
                     
                     //Setting move to 0 because now we don't want to move any view anymore (All will be managed by our contentInset logic. 
                     move = 0;
